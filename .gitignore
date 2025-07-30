@@ -1,0 +1,38 @@
+# Ignore folders containing JSON data
+Combined/
+NationalGraph_API_Publications/
+Nexus_API_Publications/
+
+# Ignore all CSV files
+*.csv
+
+# Ignore HTML files
+*.html
+
+# Ignore Excel files with sensitive data
+Researchers.xlsx
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary files
+*.tmp
+*.temp
+~$*
