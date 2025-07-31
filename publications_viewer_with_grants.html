@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publications Database with Grants</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background-color: #f8f9ff;
+            color: #667eea;
+        }
+
+        .tab-button.active {
+            background-color: #667eea;
+            color: white;
+            border-bottom-color: #4c63d2;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-btn, .clear-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .search-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .search-btn:hover {
+            background: #5a67d8;
+        }
+
+        .clear-btn {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .clear-btn:hover {
+            background: #cbd5e0;
+        }
+
+        .stats-and-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .page-size-selector select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .publications-container, .grants-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .publication-item, .grant-item {
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .publication-item:hover, .grant-item:hover {
+            background-color: #f8f9ff;
+        }
+
+        .publication-item:last-child, .grant-item:last-child {
+            border-bottom: none;
+        }
+
+        .publication-title, .grant-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .grant-title {
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+
+        .publication-authors {
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .grant-info {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .grant-project-title {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-very-high {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .confidence-high {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+
+        .confidence-medium {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .publication-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .doi-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .doi-link:hover {
+            text-decoration: underline;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e0e0e0;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .pagination button:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tab-navigation {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+
+            .stats-and-pagination {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .stats {
+                gap: 1rem;
+                justify-content: center;
+            }
+
+            .pagination-controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Publications Database</h1>
+            <p class="subtitle">Research Publications and Grant Matching System</p>
+        </header>
+
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('all-publications')">All Publications</button>
+            <button class="tab-button" onclick="switchTab('bdbsf-grants')">Barbara Dicker Brain Science Foundation</button>
+        </div>
+
+        <!-- All Publications Tab -->
+        <div id="all-publications" class="tab-content active">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search publications by title, authors, or keywords..." onkeyup="handleSearchKeyup(event)">
+                    <button class="search-btn" onclick="searchPublications()">Search</button>
+                    <button class="clear-btn" onclick="clearSearch()">Clear</button>
+                </div>
+                
+                <div class="stats-and-pagination">
+                    <div class="stats" id="stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalCount">-</div>
+                            <div class="stat-label">Total Publications</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="filteredCount">-</div>
+                            <div class="stat-label">Found</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="showingCount">-</div>
+                            <div class="stat-label">Showing</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="yearRange">-</div>
+                            <div class="stat-label">Year Range</div>
+                        </div>
+                    </div>
+
+                    <div class="pagination-controls">
+                        <div class="page-size-selector">
+                            <label for="pageSize">Show:</label>
+                            <select id="pageSize" onchange="changePageSize()">
+                                <option value="25">25</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <span>per page</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="publications-container">
+                <div id="publicationsContent">
+                    <div class="loading">Loading publications...</div>
+                </div>
+            </div>
+
+            <div id="paginationContainer" style="margin-top: 2rem; text-align: center;">
+                <!-- Pagination controls will be inserted here -->
+            </div>
+        </div>
+
+        <!-- BDBSF Grants Tab -->
+        <div id="bdbsf-grants" class="tab-content">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="grantsSearchInput" class="search-input" placeholder="Search grant-matched publications..." onkeyup="handleGrantsSearchKeyup(event)">
+                    <button class="search-btn" onclick="searchGrants()">Search</button>
+                    <button class="clear-btn" onclick="clearGrantsSearch()">Clear</button>
+                </div>
+                
+                <div class="stats-and-pagination">
+                    <div class="stats" id="grantsStats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="grantsTotal">-</div>
+                            <div class="stat-label">Grant Publications</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="grantsFiltered">-</div>
+                            <div class="stat-label">Found</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="grantsShowing">-</div>
+                            <div class="stat-label">Showing</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="uniqueGrants">-</div>
+                            <div class="stat-label">Unique Grants</div>
+                        </div>
+                    </div>
+
+                    <div class="pagination-controls">
+                        <div class="page-size-selector">
+                            <label for="grantsPageSize">Show:</label>
+                            <select id="grantsPageSize" onchange="changeGrantsPageSize()">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>per page</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grants-container">
+                <div id="grantsContent">
+                    <div class="loading">Loading grant-matched publications...</div>
+                </div>
+            </div>
+
+            <div id="grantsPaginationContainer" style="margin-top: 2rem; text-align: center;">
+                <!-- Grants pagination controls will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let allPublications = [];
+        let filteredPublications = [];
+        let currentPage = 1;
+        let pageSize = 50;
+
+        let allGrantPublications = [];
+        let filteredGrantPublications = [];
+        let grantsCurrentPage = 1;
+        let grantsPageSize = 25;
+
+        let currentActiveTab = 'all-publications';
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+
+            currentActiveTab = tabName;
+
+            // Load data if not already loaded
+            if (tabName === 'all-publications' && allPublications.length === 0) {
+                loadAllPublications();
+            } else if (tabName === 'bdbsf-grants' && allGrantPublications.length === 0) {
+                loadGrantPublications();
+            }
+        }
+
+        // CSV parsing function
+        function parseCSVRow(row) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < row.length; i++) {
+                const char = row[i];
+                
+                if (char === '"') {
+                    if (inQuotes && row[i + 1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        // Load all publications
+        async function loadAllPublications() {
+            try {
+                const response = await fetch('Merged Publications Fixed.csv');
+                const csvText = await response.text();
+                
+                const lines = csvText.split('\n').filter(line => line.trim());
+                const headers = parseCSVRow(lines[0]);
+                
+                allPublications = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = parseCSVRow(lines[i]);
+                    if (values.length >= headers.length) {
+                        const publication = {};
+                        headers.forEach((header, index) => {
+                            publication[header] = values[index] || '';
+                        });
+                        allPublications.push(publication);
+                    }
+                }
+                
+                filteredPublications = [...allPublications];
+                updateStats();
+                displayPublications();
+                
+            } catch (error) {
+                console.error('Error loading publications:', error);
+                document.getElementById('publicationsContent').innerHTML = 
+                    '<div class="no-results">Error loading publications. Please make sure the CSV file is available.</div>';
+            }
+        }
+
+        // Load grant publications
+        async function loadGrantPublications() {
+            try {
+                const response = await fetch('Merged Publications High Confidence Only.csv');
+                const csvText = await response.text();
+                
+                const lines = csvText.split('\n').filter(line => line.trim());
+                const headers = parseCSVRow(lines[0]);
+                
+                const allData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = parseCSVRow(lines[i]);
+                    if (values.length >= headers.length) {
+                        const publication = {};
+                        headers.forEach((header, index) => {
+                            publication[header] = values[index] || '';
+                        });
+                        allData.push(publication);
+                    }
+                }
+                
+                // Filter only publications with grants
+                allGrantPublications = allData.filter(pub => pub.grant && pub.grant.trim() !== '');
+                filteredGrantPublications = [...allGrantPublications];
+                updateGrantsStats();
+                displayGrantPublications();
+                
+            } catch (error) {
+                console.error('Error loading grant publications:', error);
+                document.getElementById('grantsContent').innerHTML = 
+                    '<div class="no-results">Error loading grant publications. Please make sure the CSV file is available.</div>';
+            }
+        }
+
+        // Search functions
+        function searchPublications() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (!query) {
+                filteredPublications = [...allPublications];
+            } else {
+                filteredPublications = allPublications.filter(pub => 
+                    pub.title.toLowerCase().includes(query) ||
+                    pub.authors_list.toLowerCase().includes(query) ||
+                    pub.publication_year.toString().includes(query) ||
+                    pub.crossref_type.toLowerCase().includes(query)
+                );
+            }
+            
+            currentPage = 1;
+            updateStats();
+            displayPublications();
+        }
+
+        function searchGrants() {
+            const query = document.getElementById('grantsSearchInput').value.toLowerCase().trim();
+            
+            if (!query) {
+                filteredGrantPublications = [...allGrantPublications];
+            } else {
+                filteredGrantPublications = allGrantPublications.filter(pub => 
+                    pub.title.toLowerCase().includes(query) ||
+                    pub.authors_list.toLowerCase().includes(query) ||
+                    pub.grant.toLowerCase().includes(query) ||
+                    pub.confidence_level.toLowerCase().includes(query)
+                );
+            }
+            
+            grantsCurrentPage = 1;
+            updateGrantsStats();
+            displayGrantPublications();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            searchPublications();
+        }
+
+        function clearGrantsSearch() {
+            document.getElementById('grantsSearchInput').value = '';
+            searchGrants();
+        }
+
+        function handleSearchKeyup(event) {
+            if (event.key === 'Enter') {
+                searchPublications();
+            }
+        }
+
+        function handleGrantsSearchKeyup(event) {
+            if (event.key === 'Enter') {
+                searchGrants();
+            }
+        }
+
+        // Display functions
+        function displayPublications() {
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const currentPublications = filteredPublications.slice(startIndex, endIndex);
+            
+            if (currentPublications.length === 0) {
+                document.getElementById('publicationsContent').innerHTML = 
+                    '<div class="no-results">No publications found matching your search criteria.</div>';
+                document.getElementById('paginationContainer').innerHTML = '';
+                return;
+            }
+            
+            const html = currentPublications.map(pub => `
+                <div class="publication-item">
+                    <div class="publication-title">${pub.title}</div>
+                    <div class="publication-authors">${pub.authors_list}</div>
+                    <div class="publication-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Year:</span>
+                            <span>${pub.publication_year}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Type:</span>
+                            <span>${pub.crossref_type}</span>
+                        </div>
+                        ${pub.doi ? `
+                        <div class="detail-item">
+                            <span class="detail-label">DOI:</span>
+                            <a href="https://doi.org/${pub.doi}" target="_blank" class="doi-link">${pub.doi}</a>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('publicationsContent').innerHTML = html;
+            updatePagination();
+        }
+
+        function displayGrantPublications() {
+            const startIndex = (grantsCurrentPage - 1) * grantsPageSize;
+            const endIndex = startIndex + grantsPageSize;
+            const currentPublications = filteredGrantPublications.slice(startIndex, endIndex);
+            
+            if (currentPublications.length === 0) {
+                document.getElementById('grantsContent').innerHTML = 
+                    '<div class="no-results">No grant-matched publications found.</div>';
+                document.getElementById('grantsPaginationContainer').innerHTML = '';
+                return;
+            }
+            
+            const html = currentPublications.map(pub => `
+                <div class="grant-item">
+                    <div class="publication-title">${pub.title}</div>
+                    <div class="publication-authors">${pub.authors_list}</div>
+                    <div class="grant-info">
+                        <div class="confidence-badge confidence-${pub.confidence_level.toLowerCase().replace(' ', '-')}">${pub.confidence_level} Confidence</div>
+                        <div class="grant-project-title">Associated Grant Project:</div>
+                        <div class="grant-title">${pub.grant}</div>
+                    </div>
+                    <div class="publication-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Year:</span>
+                            <span>${pub.publication_year}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Type:</span>
+                            <span>${pub.crossref_type}</span>
+                        </div>
+                        ${pub.doi ? `
+                        <div class="detail-item">
+                            <span class="detail-label">DOI:</span>
+                            <a href="https://doi.org/${pub.doi}" target="_blank" class="doi-link">${pub.doi}</a>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('grantsContent').innerHTML = html;
+            updateGrantsPagination();
+        }
+
+        // Stats and pagination functions
+        function updateStats() {
+            const totalCount = allPublications.length;
+            const filteredCount = filteredPublications.length;
+            const showingStart = Math.min((currentPage - 1) * pageSize + 1, filteredCount);
+            const showingEnd = Math.min(currentPage * pageSize, filteredCount);
+            
+            document.getElementById('totalCount').textContent = totalCount.toLocaleString();
+            document.getElementById('filteredCount').textContent = filteredCount.toLocaleString();
+            document.getElementById('showingCount').textContent = filteredCount > 0 ? `${showingStart}-${showingEnd}` : '0';
+            
+            if (allPublications.length > 0) {
+                const years = allPublications.map(pub => parseInt(pub.publication_year)).filter(year => !isNaN(year));
+                const minYear = Math.min(...years);
+                const maxYear = Math.max(...years);
+                document.getElementById('yearRange').textContent = `${minYear}-${maxYear}`;
+            }
+        }
+
+        function updateGrantsStats() {
+            const totalCount = allGrantPublications.length;
+            const filteredCount = filteredGrantPublications.length;
+            const showingStart = Math.min((grantsCurrentPage - 1) * grantsPageSize + 1, filteredCount);
+            const showingEnd = Math.min(grantsCurrentPage * grantsPageSize, filteredCount);
+            
+            const uniqueGrantsCount = new Set(allGrantPublications.map(pub => pub.grant)).size;
+            
+            document.getElementById('grantsTotal').textContent = totalCount.toLocaleString();
+            document.getElementById('grantsFiltered').textContent = filteredCount.toLocaleString();
+            document.getElementById('grantsShowing').textContent = filteredCount > 0 ? `${showingStart}-${showingEnd}` : '0';
+            document.getElementById('uniqueGrants').textContent = uniqueGrantsCount.toLocaleString();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredPublications.length / pageSize);
+            let html = '';
+            
+            if (totalPages > 1) {
+                html += `<div class="pagination">`;
+                
+                // Previous button
+                html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+                
+                // Page numbers
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(totalPages, currentPage + 2);
+                
+                if (startPage > 1) {
+                    html += `<button onclick="goToPage(1)">1</button>`;
+                    if (startPage > 2) html += `<span>...</span>`;
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<button onclick="goToPage(${i})" ${i === currentPage ? 'class="active"' : ''}>${i}</button>`;
+                }
+                
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) html += `<span>...</span>`;
+                    html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+                }
+                
+                // Next button
+                html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+                
+                html += `</div>`;
+            }
+            
+            document.getElementById('paginationContainer').innerHTML = html;
+        }
+
+        function updateGrantsPagination() {
+            const totalPages = Math.ceil(filteredGrantPublications.length / grantsPageSize);
+            let html = '';
+            
+            if (totalPages > 1) {
+                html += `<div class="pagination">`;
+                
+                // Previous button
+                html += `<button onclick="goToGrantsPage(${grantsCurrentPage - 1})" ${grantsCurrentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+                
+                // Page numbers
+                const startPage = Math.max(1, grantsCurrentPage - 2);
+                const endPage = Math.min(totalPages, grantsCurrentPage + 2);
+                
+                if (startPage > 1) {
+                    html += `<button onclick="goToGrantsPage(1)">1</button>`;
+                    if (startPage > 2) html += `<span>...</span>`;
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<button onclick="goToGrantsPage(${i})" ${i === grantsCurrentPage ? 'class="active"' : ''}>${i}</button>`;
+                }
+                
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) html += `<span>...</span>`;
+                    html += `<button onclick="goToGrantsPage(${totalPages})">${totalPages}</button>`;
+                }
+                
+                // Next button
+                html += `<button onclick="goToGrantsPage(${grantsCurrentPage + 1})" ${grantsCurrentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+                
+                html += `</div>`;
+            }
+            
+            document.getElementById('grantsPaginationContainer').innerHTML = html;
+        }
+
+        // Navigation functions
+        function goToPage(page) {
+            currentPage = page;
+            displayPublications();
+            updateStats();
+        }
+
+        function goToGrantsPage(page) {
+            grantsCurrentPage = page;
+            displayGrantPublications();
+            updateGrantsStats();
+        }
+
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSize').value);
+            currentPage = 1;
+            displayPublications();
+            updateStats();
+        }
+
+        function changeGrantsPageSize() {
+            grantsPageSize = parseInt(document.getElementById('grantsPageSize').value);
+            grantsCurrentPage = 1;
+            displayGrantPublications();
+            updateGrantsStats();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllPublications();
+        });
+    </script>
+</body>
+</html>
