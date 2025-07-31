@@ -608,7 +608,7 @@
             border: 1px solid #e0e0e0;
         }
 
-        .timeline-view {
+        .focus-distribution-chart {
             background: #fafafa;
             border-radius: 8px;
             padding: 2rem;
@@ -741,72 +741,7 @@
             opacity: 0.9;
         }
 
-        .keyword-cloud {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: center;
-            margin-top: 1rem;
-        }
 
-        .keyword-tag {
-            padding: 0.5rem 1rem;
-            background: #667eea;
-            color: white;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: transform 0.2s ease;
-        }
-
-        .keyword-tag:hover {
-            transform: scale(1.05);
-        }
-
-        .keyword-tag.size-1 { font-size: 0.7rem; background: #a0aec0; }
-        .keyword-tag.size-2 { font-size: 0.8rem; background: #718096; }
-        .keyword-tag.size-3 { font-size: 0.9rem; background: #667eea; }
-        .keyword-tag.size-4 { font-size: 1rem; background: #5a67d8; }
-        .keyword-tag.size-5 { font-size: 1.1rem; background: #4c51bf; }
-
-        .timeline-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            background: white;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .timeline-year {
-            font-weight: bold;
-            color: #667eea;
-            min-width: 60px;
-            margin-right: 1rem;
-        }
-
-        .timeline-topics {
-            flex: 1;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .timeline-bar {
-            width: 100px;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            margin-left: 1rem;
-            position: relative;
-        }
-
-        .timeline-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
 
         @media (max-width: 768px) {
             .container {
@@ -1022,8 +957,7 @@
                     <div class="histogram-control-group">
                         <label for="trendAnalysis">Analysis Type:</label>
                         <select id="trendAnalysis" onchange="updateTopicTrends()">
-                            <option value="keywords">Top Keywords</option>
-                            <option value="topics">Topic Categories</option>
+                            <option value="topics" selected>Topic Categories</option>
                             <option value="emerging">Emerging Trends</option>
                         </select>
                     </div>
@@ -1058,8 +992,8 @@
                         <div class="loading">Analyzing research topics...</div>
                     </div>
                     
-                    <div class="timeline-view" id="timelineView">
-                        <!-- Timeline visualization will be inserted here -->
+                    <div class="focus-distribution-chart" id="focusDistributionChart">
+                        <!-- Research Focus Distribution will be inserted here -->
                     </div>
                 </div>
 
@@ -1075,13 +1009,6 @@
                         <h3>🔍 Topic Evolution</h3>
                         <div id="topicEvolution" class="topic-evolution">
                             <!-- Topic evolution analysis will be inserted here -->
-                        </div>
-                    </div>
-                    
-                    <div class="insight-section">
-                        <h3>📊 Research Focus Distribution</h3>
-                        <div id="focusDistribution" class="focus-distribution">
-                            <!-- Focus distribution will be inserted here -->
                         </div>
                     </div>
                 </div>
@@ -1697,9 +1624,7 @@
             }
 
             // Generate visualizations based on analysis type
-            if (analysisType === 'keywords') {
-                generateKeywordTrends(yearsToAnalyze, topTopics);
-            } else if (analysisType === 'topics') {
+            if (analysisType === 'topics') {
                 generateTopicCategoryTrends(yearsToAnalyze, topTopics);
             } else if (analysisType === 'emerging') {
                 generateEmergingTrends(yearsToAnalyze, topTopics);
@@ -1710,38 +1635,6 @@
             generateFocusDistribution(yearsToAnalyze);
         }
 
-        function generateKeywordTrends(years, topCount) {
-            // Count keyword frequency across all years
-            const keywordCounts = {};
-            years.forEach(year => {
-                if (researchKeywords[year]) {
-                    researchKeywords[year].forEach(keyword => {
-                        keywordCounts[keyword] = (keywordCounts[keyword] || 0) + 1;
-                    });
-                }
-            });
-
-            // Get top keywords
-            const topKeywords = Object.entries(keywordCounts)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, topCount);
-
-            // Generate keyword cloud
-            let keywordCloudHTML = '<div class="keyword-cloud">';
-            topKeywords.forEach(([keyword, count], index) => {
-                const sizeClass = Math.min(5, Math.max(1, Math.ceil(count / Math.max(...topKeywords.map(([,c]) => c)) * 5)));
-                keywordCloudHTML += `<span class="keyword-tag size-${sizeClass}" title="${count} publications">${keyword}</span>`;
-            });
-            keywordCloudHTML += '</div>';
-
-            document.getElementById('trendingTopicsChart').innerHTML = `
-                <h4>Most Frequent Research Keywords</h4>
-                ${keywordCloudHTML}
-            `;
-
-            // Generate timeline
-            generateKeywordTimeline(years, topKeywords.slice(0, 5).map(([keyword]) => keyword));
-        }
 
         function generateTopicCategoryTrends(years, topCount) {
             // Aggregate topic counts across years
@@ -1775,9 +1668,6 @@
             categoryHTML += '</div>';
 
             document.getElementById('trendingTopicsChart').innerHTML = categoryHTML;
-
-            // Generate timeline for categories
-            generateCategoryTimeline(years, topCategories.slice(0, 5).map(([category]) => category));
         }
 
         function generateEmergingTrends(years, topCount) {
@@ -1848,62 +1738,8 @@
             }
 
             document.getElementById('trendingTopicsChart').innerHTML = emergingHTML;
-            
-            // Generate simple timeline
-            generateEmergingTimeline(years, topEmerging.slice(0, 3).map(t => t.keyword));
         }
 
-        function generateKeywordTimeline(years, keywords) {
-            let timelineHTML = '<h4>Keyword Timeline</h4>';
-            years.forEach(year => {
-                const yearKeywords = researchKeywords[year] || [];
-                const relevantKeywords = keywords.filter(k => yearKeywords.includes(k));
-                const intensity = relevantKeywords.length / keywords.length;
-                
-                timelineHTML += `
-                    <div class="timeline-item">
-                        <div class="timeline-year">${year}</div>
-                        <div class="timeline-topics">${relevantKeywords.join(', ') || 'None'}</div>
-                        <div class="timeline-bar">
-                            <div class="timeline-bar-fill" style="width: ${intensity * 100}%"></div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('timelineView').innerHTML = timelineHTML;
-        }
-
-        function generateCategoryTimeline(years, categories) {
-            let timelineHTML = '<h4>Category Timeline</h4>';
-            const maxCount = Math.max(...years.map(year => {
-                if (!topicData[year]) return 0;
-                return Math.max(...categories.map(cat => topicData[year][cat] || 0));
-            }));
-
-            years.forEach(year => {
-                const yearData = topicData[year] || {};
-                const yearCategories = categories.filter(cat => yearData[cat] > 0);
-                const totalCount = categories.reduce((sum, cat) => sum + (yearData[cat] || 0), 0);
-                const intensity = maxCount > 0 ? totalCount / maxCount : 0;
-                
-                timelineHTML += `
-                    <div class="timeline-item">
-                        <div class="timeline-year">${year}</div>
-                        <div class="timeline-topics">${yearCategories.join(', ') || 'None'}</div>
-                        <div class="timeline-bar">
-                            <div class="timeline-bar-fill" style="width: ${intensity * 100}%"></div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('timelineView').innerHTML = timelineHTML;
-        }
-
-        function generateEmergingTimeline(years, keywords) {
-            generateKeywordTimeline(years, keywords);
-        }
 
         function generateYearlyTopicInsights(years) {
             let insightsHTML = '';
@@ -2020,11 +1856,11 @@
 
             const topCategories = Object.entries(totalCategories)
                 .sort(([,a], [,b]) => b - a)
-                .slice(0, 4);
+                .slice(0, 6);
 
             const totalCount = Object.values(totalCategories).reduce((a, b) => a + b, 0);
             
-            let distributionHTML = '';
+            let distributionHTML = '<h4>Research Focus Distribution</h4><div class="focus-distribution">';
             topCategories.forEach(([category, count]) => {
                 const percentage = ((count / totalCount) * 100).toFixed(0);
                 distributionHTML += `
@@ -2034,8 +1870,9 @@
                     </div>
                 `;
             });
+            distributionHTML += '</div>';
             
-            document.getElementById('focusDistribution').innerHTML = distributionHTML;
+            document.getElementById('focusDistributionChart').innerHTML = distributionHTML;
         }
 
         // Initialize
