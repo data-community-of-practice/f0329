@@ -347,6 +347,126 @@
             cursor: not-allowed;
         }
 
+        /* Analytics Tab Styles */
+        .analytics-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+
+        .analytics-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #333;
+        }
+
+        .year-bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .year-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+
+        .year-bar:hover {
+            background-color: #f8f9ff;
+        }
+
+        .year-label {
+            font-weight: 500;
+            min-width: 60px;
+            color: #333;
+        }
+
+        .year-bar-fill {
+            flex: 1;
+            height: 25px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            position: relative;
+            min-width: 10px;
+        }
+
+        .year-count {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .year-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .year-table th,
+        .year-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .year-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .year-table tr:hover {
+            background-color: #f8f9ff;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -390,6 +510,7 @@
         <div class="tab-navigation">
             <button class="tab-button active" onclick="switchTab('all-publications')">All Publications</button>
             <button class="tab-button" onclick="switchTab('bdbsf-grants')">Barbara Dicker Brain Science Foundation</button>
+            <button class="tab-button" onclick="switchTab('yearly-analytics')">Publications by Year</button>
         </div>
 
         <!-- All Publications Tab -->
@@ -501,6 +622,54 @@
                 <!-- Grants pagination controls will be inserted here -->
             </div>
         </div>
+
+        <!-- Yearly Analytics Tab -->
+        <div id="yearly-analytics" class="tab-content">
+            <div class="analytics-container">
+                <div class="analytics-summary" id="analyticsSummary">
+                    <div class="summary-card">
+                        <div class="summary-number" id="totalYears">-</div>
+                        <div class="summary-label">Years Covered</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-number" id="avgPerYear">-</div>
+                        <div class="summary-label">Avg Per Year</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-number" id="peakYear">-</div>
+                        <div class="summary-label">Peak Year</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-number" id="peakCount">-</div>
+                        <div class="summary-label">Peak Count</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Publications by Year</div>
+                    <div id="yearChart" class="year-bar-chart">
+                        <div class="loading">Loading analytics...</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Detailed Breakdown</div>
+                    <table class="year-table" id="yearTable">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Publications</th>
+                                <th>Percentage</th>
+                                <th>Cumulative</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yearTableBody">
+                            <!-- Table rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -542,6 +711,12 @@
                 loadAllPublications();
             } else if (tabName === 'bdbsf-grants' && allGrantPublications.length === 0) {
                 loadGrantPublications();
+            } else if (tabName === 'yearly-analytics') {
+                if (allPublications.length === 0) {
+                    loadAllPublications().then(() => generateYearlyAnalytics());
+                } else {
+                    generateYearlyAnalytics();
+                }
             }
         }
 
@@ -916,6 +1091,90 @@
             grantsCurrentPage = 1;
             displayGrantPublications();
             updateGrantsStats();
+        }
+
+        // Generate yearly analytics
+        function generateYearlyAnalytics() {
+            if (allPublications.length === 0) {
+                document.getElementById('yearChart').innerHTML = '<div class="no-results">No data available for analytics.</div>';
+                return;
+            }
+
+            // Count publications by year
+            const yearCounts = {};
+            let totalPubs = 0;
+            let validYears = [];
+
+            allPublications.forEach(pub => {
+                const year = parseInt(pub.publication_year);
+                if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
+                    yearCounts[year] = (yearCounts[year] || 0) + 1;
+                    totalPubs++;
+                    validYears.push(year);
+                }
+            });
+
+            if (validYears.length === 0) {
+                document.getElementById('yearChart').innerHTML = '<div class="no-results">No valid publication years found.</div>';
+                return;
+            }
+
+            // Sort years
+            const sortedYears = Object.keys(yearCounts).map(y => parseInt(y)).sort((a, b) => b - a);
+            const maxCount = Math.max(...Object.values(yearCounts));
+            
+            // Calculate summary statistics
+            const minYear = Math.min(...validYears);
+            const maxYear = Math.max(...validYears);
+            const yearRange = maxYear - minYear + 1;
+            const avgPerYear = Math.round(totalPubs / yearRange);
+            const peakYear = sortedYears.find(year => yearCounts[year] === maxCount);
+
+            // Update summary cards
+            document.getElementById('totalYears').textContent = yearRange;
+            document.getElementById('avgPerYear').textContent = avgPerYear;
+            document.getElementById('peakYear').textContent = peakYear;
+            document.getElementById('peakCount').textContent = maxCount;
+
+            // Generate bar chart
+            let chartHTML = '';
+            sortedYears.forEach(year => {
+                const count = yearCounts[year];
+                const percentage = (count / maxCount) * 100;
+                
+                chartHTML += `
+                    <div class="year-bar">
+                        <div class="year-label">${year}</div>
+                        <div class="year-bar-fill" style="width: ${percentage}%">
+                            <div class="year-count">${count}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('yearChart').innerHTML = chartHTML;
+
+            // Generate detailed table
+            let tableHTML = '';
+            let cumulative = 0;
+            
+            sortedYears.forEach(year => {
+                const count = yearCounts[year];
+                cumulative += count;
+                const percentage = ((count / totalPubs) * 100).toFixed(1);
+                const cumulativePercentage = ((cumulative / totalPubs) * 100).toFixed(1);
+                
+                tableHTML += `
+                    <tr>
+                        <td>${year}</td>
+                        <td>${count.toLocaleString()}</td>
+                        <td>${percentage}%</td>
+                        <td>${cumulativePercentage}%</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('yearTableBody').innerHTML = tableHTML;
         }
 
         // Initialize
