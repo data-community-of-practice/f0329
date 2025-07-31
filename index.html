@@ -962,27 +962,10 @@
                         </select>
                     </div>
                     <div class="histogram-control-group">
-                        <label for="yearRange">Year Range:</label>
-                        <select id="yearRange" onchange="updateTopicTrends()">
-                            <option value="all">All Years</option>
-                            <option value="recent10">Last 10 Years</option>
-                            <option value="recent20">Last 20 Years</option>
-                            <option value="custom">Custom Range</option>
-                        </select>
-                    </div>
-                    <div class="histogram-control-group" id="customRangeInputs" style="display: none;">
-                        <label for="startYear">From:</label>
-                        <input type="number" id="startYear" min="1900" max="2030" value="2000" onchange="updateTopicTrends()">
-                        <label for="endYear">To:</label>
-                        <input type="number" id="endYear" min="1900" max="2030" value="2024" onchange="updateTopicTrends()">
-                    </div>
-                    <div class="histogram-control-group">
                         <label for="topTopics">Show Top:</label>
                         <select id="topTopics" onchange="updateTopicTrends()">
                             <option value="5">5 Topics</option>
                             <option value="10" selected>10 Topics</option>
-                            <option value="15">15 Topics</option>
-                            <option value="20">20 Topics</option>
                         </select>
                     </div>
                 </div>
@@ -1597,29 +1580,13 @@
 
         function updateTopicTrends() {
             const analysisType = document.getElementById('trendAnalysis').value;
-            const yearRange = document.getElementById('yearRange').value;
             const topTopics = parseInt(document.getElementById('topTopics').value);
             
-            // Show/hide custom range inputs
-            document.getElementById('customRangeInputs').style.display = 
-                yearRange === 'custom' ? 'flex' : 'none';
-
-            // Filter years based on range
+            // Use all available years
             let yearsToAnalyze = Object.keys(topicData).map(y => parseInt(y)).sort((a, b) => a - b);
-            const currentYear = new Date().getFullYear();
-            
-            if (yearRange === 'recent10') {
-                yearsToAnalyze = yearsToAnalyze.filter(year => year >= currentYear - 9);
-            } else if (yearRange === 'recent20') {
-                yearsToAnalyze = yearsToAnalyze.filter(year => year >= currentYear - 19);
-            } else if (yearRange === 'custom') {
-                const startYear = parseInt(document.getElementById('startYear').value);
-                const endYear = parseInt(document.getElementById('endYear').value);
-                yearsToAnalyze = yearsToAnalyze.filter(year => year >= startYear && year <= endYear);
-            }
 
             if (yearsToAnalyze.length === 0) {
-                document.getElementById('trendingTopicsChart').innerHTML = '<div class="no-results">No data in selected range</div>';
+                document.getElementById('trendingTopicsChart').innerHTML = '<div class="no-results">No data available</div>';
                 return;
             }
 
