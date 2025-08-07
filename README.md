@@ -16,7 +16,34 @@ This script uses an LLM to intelligently match research grants to their resultin
    pip install -r requirements.txt
    ```
 
-2. Set your OpenAI API key as an environment variable:
+2. **Configuration File Setup** (Recommended):
+   
+   Copy the example configuration file:
+   ```bash
+   cp config.ini.example config.ini
+   ```
+   
+   Edit `config.ini` with your API credentials and settings:
+   ```ini
+   [openai]
+   api_key = your-openai-api-key-here
+
+   [researchgraph_api]
+   authorization = Basic your-base64-encoded-credentials-here
+   url = https://researchgraph.cloud/api/gpt
+
+   [files]
+   grants_file = barbara dicker grants.xlsx
+   publications_file = Merged Publications Final.csv
+   output_file = Grant_Publication_Matches.xlsx
+
+   [matching]
+   confidence_threshold = 30.0
+   test_mode = false
+   test_sample_size = 10
+   ```
+
+3. **Alternative: Environment Variable**:
    ```bash
    export OPENAI_API_KEY="your-api-key-here"
    ```
@@ -34,13 +61,23 @@ This script uses an LLM to intelligently match research grants to their resultin
 
 2. Run the script:
    ```bash
+   # Full processing (all publications)
    python grant_publication_matcher.py
+   
+   # Demo mode (process specific number of publications)
+   python grant_publication_matcher.py --demo 10
+   
+   # Test mode (uses config file sample size)
+   python grant_publication_matcher.py --test
+   
+   # Custom confidence threshold
+   python grant_publication_matcher.py --confidence 50
    ```
 
 3. The script will generate `Grant_Publication_Matches.xlsx` with:
    - All original publication data
    - Matched grant title
-   - Confidence score (0-100)
+   - Confidence level (Very High/High/Medium/Low/Very Low)
    - Individual scores for each matching criterion
    - Reasoning for the match
 
@@ -48,7 +85,8 @@ This script uses an LLM to intelligently match research grants to their resultin
 
 The output Excel file contains all original publication columns plus:
 - `matched_grant_title`: The best matching grant (or "No match found")
-- `confidence_score`: Overall confidence in the match (0-100)
+- `confidence_score`: Overall confidence score (0-100) 
+- `confidence_level`: Categorical confidence level (Very High/High/Medium/Low/Very Low)
 - `topic_relevance`: Topic similarity score (0-100)
 - `author_overlap`: Author overlap score (0-100)
 - `temporal_validity`: Temporal validity score (0-100)
