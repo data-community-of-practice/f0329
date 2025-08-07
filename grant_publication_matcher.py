@@ -15,16 +15,36 @@ from datetime import datetime
 from typing import Dict, List, Tuple
 import os
 from pathlib import Path
+import configparser
+import requests
+import argparse
+import time
 
 class GrantPublicationMatcher:
-    def __init__(self, openai_api_key: str = None):
-        """Initialize the matcher with OpenAI API key"""
-        if openai_api_key:
+    def __init__(self, config_file: str = "config.ini", openai_api_key: str = None):
+        """Initialize the matcher with config file or OpenAI API key"""
+        self.last_request_time = 0
+        self.min_request_interval = 3.0  # Conservative: 20 requests per minute for safety
+        # Try to load from config file first
+        if os.path.exists(config_file):
+            config = configparser.ConfigParser()
+            config.read(config_file)
+            if 'openai' in config and 'api_key' in config['openai']:
+                openai.api_key = config['openai']['api_key']
+                self.config = config
+                print(f"Loaded configuration from {config_file}")
+            else:
+                print(f"Config file {config_file} found but no OpenAI API key section.")
+                self.config = None
+        elif openai_api_key:
             openai.api_key = openai_api_key
+            self.config = None
         elif 'OPENAI_API_KEY' in os.environ:
             openai.api_key = os.environ['OPENAI_API_KEY']
+            self.config = None
         else:
-            print("Warning: No OpenAI API key provided. Set OPENAI_API_KEY environment variable or pass key to constructor.")
+            print("Warning: No OpenAI API key provided. Set OPENAI_API_KEY environment variable, pass key to constructor, or create config.ini file.")
+            self.config = None
     
     def load_data(self, grants_file: str, publications_file: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Load grants and publications data"""
@@ -122,6 +142,7 @@ Respond with a JSON object containing:
     "temporal_validity": <score 0-100>,
     "research_continuity": <score 0-100>,
     "overall_confidence": <score 0-100>,
+    "confidence_level": "<Very High/High/Medium/Low/Very Low>",
     "reasoning": "<brief explanation of the match assessment>"
 }}
 """
@@ -132,18 +153,50 @@ Respond with a JSON object containing:
         try:
             prompt = self.create_matching_prompt(grant_info, publication_info)
             
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
+            # Use Research Graph API endpoint
+            api_url = "https://researchgraph.cloud/api/gpt"
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [
                     {"role": "system", "content": "You are an expert research analyst specializing in matching research grants to their resulting publications. Provide accurate, objective assessments."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.1,
-                max_tokens=500
-            )
+                "temperature": 0.1,
+                "max_tokens": 500
+            }
+            
+            headers = {
+                "accept": "application/json",
+                "authorization": "Basic YWlzaHdhcnlhOmp3ZzV0d2YwVFFENGZ4dCFjaGE=",
+                "Content-Type": "application/json"
+            }
+            
+            # Rate limiting with retry for 429 errors
+            max_retries = 3
+            for attempt in range(max_retries):
+                # Ensure minimum time between requests
+                current_time = time.time()
+                time_since_last_request = current_time - self.last_request_time
+                if time_since_last_request < self.min_request_interval:
+                    sleep_time = self.min_request_interval - time_since_last_request
+                    time.sleep(sleep_time)
+                
+                response = requests.post(api_url, json=payload, headers=headers)
+                self.last_request_time = time.time()
+                
+                if response.status_code == 429:
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 10  # Exponential backoff: 10, 20, 30 seconds
+                        print(f"Rate limit hit, waiting {wait_time} seconds before retry...")
+                        time.sleep(wait_time)
+                        continue
+                
+                response.raise_for_status()
+                break
             
             # Parse JSON response
-            response_text = response.choices[0].message.content.strip()
+            response_data = response.json()
+            response_text = response_data["choices"][0]["message"]["content"].strip()
             
             # Extract JSON from response if it contains other text
             json_start = response_text.find('{')
@@ -190,8 +243,10 @@ Respond with a JSON object containing:
             # Check against each grant
             for grant_idx, grant_row in grants_df.iterrows():
                 # Pre-calculate author overlap and temporal validity
+                # Combine preferred names and other investigators
+                investigators_str = f"{grant_row.get('Preferred Full Name', '')}, {grant_row.get('Other Investigators', '')}"
                 author_overlap = self.calculate_author_overlap(
-                    str(grant_row.get('Lead Investigator', '')) + ', ' + str(grant_row.get('Co-investigators', '')),
+                    investigators_str,
                     publication_info['authors']
                 )
                 
@@ -201,9 +256,9 @@ Respond with a JSON object containing:
                 )
                 
                 grant_info = {
-                    'title': grant_row.get('Grant Title', ''),
-                    'lead_investigator': grant_row.get('Lead Investigator', ''),
-                    'co_investigators': grant_row.get('Co-investigators', ''),
+                    'title': grant_row.get('TITLE', ''),
+                    'lead_investigator': grant_row.get('Preferred Full Name', ''),
+                    'co_investigators': grant_row.get('Other Investigators', ''),
                     'start_date': grant_row.get('Start Date', ''),
                     'end_date': grant_row.get('End Date', ''),
                     'author_overlap_score': author_overlap * 100,
@@ -233,6 +288,7 @@ Respond with a JSON object containing:
             if best_match:
                 result_row['matched_grant_title'] = best_match['grant_title']
                 result_row['confidence_score'] = best_match['confidence']
+                result_row['confidence_level'] = best_match['assessment'].get('confidence_level', 'Unknown')
                 result_row['topic_relevance'] = best_match['assessment'].get('topic_relevance', 0)
                 result_row['author_overlap'] = best_match['assessment'].get('author_overlap', 0)
                 result_row['temporal_validity'] = best_match['assessment'].get('temporal_validity', 0)
@@ -241,6 +297,7 @@ Respond with a JSON object containing:
             else:
                 result_row['matched_grant_title'] = 'No match found'
                 result_row['confidence_score'] = 0
+                result_row['confidence_level'] = 'Very Low'
                 result_row['topic_relevance'] = 0
                 result_row['author_overlap'] = 0
                 result_row['temporal_validity'] = 0
@@ -257,7 +314,7 @@ Respond with a JSON object containing:
         
         # Reorder columns to put matching info at the end
         original_cols = ['title', 'publication_year', 'authors_list', 'doi', 'crossref_type', 'key']
-        new_cols = ['matched_grant_title', 'confidence_score', 'topic_relevance', 'author_overlap', 
+        new_cols = ['matched_grant_title', 'confidence_score', 'confidence_level', 'topic_relevance', 'author_overlap', 
                    'temporal_validity', 'research_continuity', 'matching_reasoning']
         
         column_order = original_cols + new_cols
@@ -279,20 +336,62 @@ Respond with a JSON object containing:
 
 def main():
     """Main execution function"""
-    # Initialize matcher
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Grant-Publication Matching Script')
+    parser.add_argument('--demo', type=int, help='Run in demo mode with specified number of publications')
+    parser.add_argument('--test', action='store_true', help='Run in test mode (uses config sample size)')
+    parser.add_argument('--confidence', type=float, help='Confidence threshold (0-100)')
+    args = parser.parse_args()
+    
+    # Initialize matcher (will automatically load config.ini)
     matcher = GrantPublicationMatcher()
     
-    # File paths
-    grants_file = "barbara dicker grants.xlsx"
-    publications_file = "Merged Publications Final.csv"
-    output_file = "Grant_Publication_Matches.xlsx"
+    # Get configuration values
+    config = matcher.config
+    if config:
+        # Load from config file
+        grants_file = config.get('files', 'grants_file', fallback="barbara dicker grants.xlsx")
+        publications_file = config.get('files', 'publications_file', fallback="Merged Publications Final.csv")
+        output_file = config.get('files', 'output_file', fallback="Grant_Publication_Matches.xlsx")
+        confidence_threshold = config.getfloat('matching', 'confidence_threshold', fallback=30.0)
+        test_mode = config.getboolean('matching', 'test_mode', fallback=False)
+        test_sample_size = config.getint('matching', 'test_sample_size', fallback=10)
+    else:
+        # Default values
+        grants_file = "barbara dicker grants.xlsx"
+        publications_file = "Merged Publications Final.csv"
+        output_file = "Grant_Publication_Matches.xlsx"
+        confidence_threshold = 30.0
+        test_mode = False
+        test_sample_size = 10
+    
+    # Override with command line arguments
+    if args.demo:
+        test_mode = True
+        test_sample_size = args.demo
+        print(f"Running in DEMO mode - processing {test_sample_size} publications")
+    elif args.test:
+        test_mode = True
+        print(f"Running in TEST mode - processing {test_sample_size} publications")
+    
+    if args.confidence:
+        confidence_threshold = args.confidence
+        print(f"Using confidence threshold: {confidence_threshold}")
     
     try:
         # Load data
         grants_df, publications_df = matcher.load_data(grants_file, publications_file)
         
+        # Apply test/demo mode if enabled
+        if test_mode:
+            publications_df = publications_df.head(test_sample_size)
+            if args.demo:
+                output_file = output_file.replace('.xlsx', '_demo.xlsx')
+            else:
+                output_file = output_file.replace('.xlsx', '_test.xlsx')
+        
         # Perform matching
-        results_df = matcher.match_grants_to_publications(grants_df, publications_df)
+        results_df = matcher.match_grants_to_publications(grants_df, publications_df, confidence_threshold)
         
         # Save results
         matcher.save_results(results_df, output_file)
@@ -301,7 +400,7 @@ def main():
         print(f"Error: {e}")
         print("\nMake sure:")
         print("1. Both input files exist in the current directory")
-        print("2. OpenAI API key is set in OPENAI_API_KEY environment variable")
+        print("2. OpenAI API key is set in config.ini file or OPENAI_API_KEY environment variable")
         print("3. Required packages are installed: pip install pandas openai openpyxl")
 
 if __name__ == "__main__":
