@@ -153,8 +153,14 @@ Respond with a JSON object containing:
         try:
             prompt = self.create_matching_prompt(grant_info, publication_info)
             
-            # Use Research Graph API endpoint
+            # Use Research Graph API endpoint - get config from self.config
             api_url = "https://researchgraph.cloud/api/gpt"
+            authorization = "Basic YWlzaHdhcnlhOmp3ZzV0d2YwVFFENGZ4dCFjaGE="  # default fallback
+            
+            if self.config:
+                api_url = self.config.get('researchgraph_api', 'url', fallback=api_url)
+                authorization = self.config.get('researchgraph_api', 'authorization', fallback=authorization)
+            
             payload = {
                 "model": "gpt-4o-mini",
                 "messages": [
@@ -167,7 +173,7 @@ Respond with a JSON object containing:
             
             headers = {
                 "accept": "application/json",
-                "authorization": "Basic YWlzaHdhcnlhOmp3ZzV0d2YwVFFENGZ4dCFjaGE=",
+                "authorization": authorization,
                 "Content-Type": "application/json"
             }
             
