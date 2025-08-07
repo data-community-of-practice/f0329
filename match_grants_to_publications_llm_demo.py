@@ -12,7 +12,7 @@ import configparser
 
 # Demo Configuration
 DEMO_MODE = True
-TEST_LIMIT = 10  # Limit to first 10 publications for demo
+TEST_LIMIT = 20  # Limit to first 20 publications for demo
 
 # LLM Configuration
 LLM_CONFIG = {
