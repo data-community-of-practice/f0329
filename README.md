@@ -46,7 +46,7 @@ Update `config.ini` with your ResearchGraph API credentials:
 ```ini
 [API]
 base_url = https://researchgraph.cloud/api/gpt
-authorization = Basic YWlzaHdhcnlhOmp3ZzV0d2YwVFFENGZ4dCFjaGE=
+authorization = enter your authorization token here
 model = gpt-4o-mini
 ```
 
