@@ -1,100 +1,137 @@
-# Grant-Publication Matcher
+# Grant-Publication Mapping Tool
 
-This script uses an LLM to intelligently match research grants to their resulting publications based on four key criteria:
+This Python program maps research publications to grants based on investigator matching, date ranges, and AI-powered relationship analysis.
 
-## Matching Criteria
+## Overview
 
-1. **Topic Relevance**: Assesses research questions, methodologies, and domain overlap
-2. **Author Overlap**: Checks for name variations and research team continuity  
-3. **Temporal Validity**: Ensures publication is after grant start date
-4. **Research Continuity**: Evaluates if this could be a plausible research outcome
+The tool performs the following steps:
+1. **Investigator Matching**: Filters publications that have authors matching grant investigators
+2. **Date Range Filtering**: Ensures publications fall within grant period + 2 years
+3. **AI Analysis**: Uses GPT-4o-mini to assess the relationship between grants and publications
+4. **Output Generation**: Creates a CSV with all publications plus 4 additional columns
 
-## Setup
+## Required Files
 
-1. Install required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
+- `barbara dicker grants.xlsx` - Excel file containing grant information
+- `Merged Publications Final.csv` - CSV file containing publication data
 
-2. **Configuration File Setup** (Recommended):
-   
-   Copy the example configuration file:
-   ```bash
-   cp config.ini.example config.ini
-   ```
-   
-   Edit `config.ini` with your API credentials and settings:
-   ```ini
-   [openai]
-   api_key = your-openai-api-key-here
+## Installation
 
-   [researchgraph_api]
-   authorization = Basic your-base64-encoded-credentials-here
-   url = https://researchgraph.cloud/api/gpt
-
-   [files]
-   grants_file = barbara dicker grants.xlsx
-   publications_file = Merged Publications Final.csv
-   output_file = Grant_Publication_Matches.xlsx
-
-   [matching]
-   confidence_threshold = 30.0
-   test_mode = false
-   test_sample_size = 10
-   ```
-
-3. **Alternative: Environment Variable**:
-   ```bash
-   export OPENAI_API_KEY="your-api-key-here"
-   ```
-   
-   Or on Windows:
-   ```cmd
-   set OPENAI_API_KEY=your-api-key-here
-   ```
+1. Install required Python packages:
+```bash
+pip install -r requirements.txt
+```
 
 ## Usage
 
-1. Place your data files in the same directory:
-   - `barbara dicker grants.xlsx` - Grant information
-   - `Merged Publications Final.csv` - Publications data
+### Method 1: Run the complete program
+```bash
+python grant_publication_mapper.py
+```
 
-2. Run the script:
-   ```bash
-   # Full processing (all publications)
-   python grant_publication_matcher.py
-   
-   # Demo mode (process specific number of publications)
-   python grant_publication_matcher.py --demo 10
-   
-   # Test mode (uses config file sample size)
-   python grant_publication_matcher.py --test
-   
-   # Custom confidence threshold
-   python grant_publication_matcher.py --confidence 50
-   ```
+You'll be prompted to enter your OpenAI API key when the program starts.
 
-3. The script will generate `Grant_Publication_Matches.xlsx` with:
-   - All original publication data
-   - Matched grant title
-   - Confidence level (Very High/High/Medium/Low/Very Low)
-   - Individual scores for each matching criterion
-   - Reasoning for the match
+### Method 2: Test the functionality first
+```bash
+python test_mapper.py
+```
 
-## Output Format
+This runs basic tests without making API calls to verify the data loading and filtering logic.
 
-The output Excel file contains all original publication columns plus:
-- `matched_grant_title`: The best matching grant (or "No match found")
-- `confidence_score`: Overall confidence score (0-100) 
-- `confidence_level`: Categorical confidence level (Very High/High/Medium/Low/Very Low)
-- `topic_relevance`: Topic similarity score (0-100)
-- `author_overlap`: Author overlap score (0-100)
-- `temporal_validity`: Temporal validity score (0-100)
-- `research_continuity`: Research continuity score (0-100)
-- `matching_reasoning`: Brief explanation of the match assessment
+## Input File Requirements
 
-## Notes
+### Grants File (`barbara dicker grants.xlsx`)
+Expected columns:
+- `TITLE`: Grant title
+- `Preferred Full Name`: Primary investigator name
+- `Other Investigators`: Comma-separated list of other investigators
+- `Start Date`: Grant start date
+- `End Date`: Grant end date
+- `Project Code`: Used as grant DOI in output
+- `Proejct Description`: Grant description (optional)
 
-- The script only matches publications to grants that meet a minimum confidence threshold (30% by default)
-- Publications with no author overlap AND invalid timing are skipped for efficiency
-- The LLM provides detailed reasoning for each match decision
+### Publications File (`Merged Publications Final.csv`)
+Expected columns:
+- `title`: Publication title
+- `authors_list`: Comma-separated list of authors
+- `publication_year`: Year of publication
+- `doi`: Publication DOI
+- `crossref_type`: Publication type
+- `key`: Publication key
+
+## Output
+
+The program creates `mapped_publications_output.csv` containing all original publication data plus:
+
+1. **Associated Grant**: Title of the matched grant (empty if no match)
+2. **DOI of grant**: Grant project code/identifier
+3. **Confidence level**: AI-assessed confidence (Very High/High/Medium/Low/Very Low)
+4. **Reasoning**: AI explanation for the mapping decision
+
+## Configuration
+
+### OpenAI API Key
+The program requires a valid OpenAI API key to access GPT-4o-mini. You can:
+- Enter it when prompted
+- Set it as an environment variable `OPENAI_API_KEY`
+- Modify the code to read from a config file
+
+### Customization Options
+
+You can modify the following in the code:
+
+- **Date Range**: Currently set to grant period + 2 years
+- **Name Matching Logic**: Adjust fuzzy matching sensitivity
+- **Confidence Thresholds**: Modify how LLM responses are interpreted
+- **Rate Limiting**: Adjust delays between API calls
+
+## Algorithm Details
+
+### Name Matching
+- Normalizes names (removes titles, extra spaces)
+- Performs fuzzy matching on name components
+- Matches if sufficient name parts overlap
+
+### Date Filtering
+- Publications must be published between grant start date and end date + 2 years
+- Uses publication year for comparison
+
+### AI Analysis
+The LLM considers:
+- Topic/subject matter alignment
+- Author overlap with investigators
+- Timing alignment
+- Methodological approach alignment
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Unicode Errors**: Ensure your system supports UTF-8 encoding
+2. **API Rate Limits**: The program includes delays, but you may need to adjust for your API tier
+3. **Memory Issues**: For very large datasets, consider processing in batches
+4. **Name Matching**: Review the matching logic if too few/many matches are found
+
+### Error Handling
+
+The program includes error handling for:
+- File loading errors
+- API call failures  
+- Data format issues
+- Network connectivity problems
+
+## Performance Notes
+
+- Processing time depends on the number of valid publication-grant pairs
+- Each pair requires an LLM API call (~0.1-0.5 seconds each)
+- For 1000+ pairs, expect 10-30 minutes processing time
+- Consider running overnight for large datasets
+
+## Cost Estimation
+
+GPT-4o-mini API costs (as of 2024):
+- ~$0.00015 per 1K input tokens
+- ~$0.0006 per 1K output tokens
+- Typical cost: ~$0.001-0.005 per publication-grant pair analysis
+
+For 1000 pairs: ~$1-5 in API costs
