@@ -28,7 +28,7 @@ Maps publications from the Barbara Dicker Brain Science Foundation investigators
 
 ## 📁 Files
 
-- **`batch_processor_optimized.py`** - Main production system
+- **`f0329.py`** - Main production system
 - **`config.ini`** - API configuration 
 - **`requirements.txt`** - Python dependencies
 - **`CLAUDE.md`** - Technical documentation
