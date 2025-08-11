@@ -199,6 +199,51 @@ python test_mapper.py
 - Documentation and deployment: ~5 hours
 - **Total**: ~35 hours of development effort
 
+## Publications Dashboard Development
+
+### Interactive Web Dashboard
+Following the successful grant-publication mapping, an interactive web dashboard was developed to provide user-friendly access to the mapped publications data.
+
+#### Dashboard Features
+- **Dual-Tab Interface**: Separate views for all publications vs. BDBSF-relevant publications
+- **Real-time Search & Filtering**: Author search, year filtering, and confidence level filtering
+- **Dynamic Statistics**: Live counts that update with applied filters
+- **Responsive Design**: Mobile-friendly interface with modern styling
+- **Offline Capability**: Self-contained HTML file with embedded data
+
+#### Technical Implementation
+- **Self-contained Design**: All 1,356 publication records embedded directly in HTML
+- **Vanilla JavaScript**: No external dependencies for maximum compatibility
+- **Progressive Enhancement**: Works across all modern browsers
+- **Performance Optimized**: Efficient client-side filtering and rendering
+
+#### Dashboard Structure
+1. **All Publications Tab**: Clean view showing title, authors, year, and DOI
+2. **BDBSF Tab**: Detailed view with grant mappings, confidence levels, and AI reasoning
+3. **Dynamic Statistics**: Publication counts, confidence breakdowns, and filtered results
+
+#### Files Generated
+- `publications_dashboard_embedded.html` - Main dashboard (standalone)
+- `create_embedded_dashboard.py` - Dashboard generation script
+- `dashboard_README.md` - Usage and setup instructions
+
+## Final Results
+
+### Processing Summary
+- **Total Publications Processed**: 1,356
+- **Successfully Mapped**: 1,354 (99.9% success rate)
+- **BDBSF-Relevant Publications**: 431 (Medium/High/Very High confidence)
+- **Processing Time**: ~1 hour 45 minutes
+- **API Calls Saved**: ~141,170 (through pre-filtering optimization)
+
+### Confidence Distribution
+- **Very High**: 45 publications (perfect topic-investigator alignment)
+- **High**: 180 publications (strong alignment)
+- **Medium**: 206 publications (moderate alignment)
+- **Low/Very Low**: 923 publications (weak alignment)
+
 ## Conclusion
 
-This system successfully automates the grant-publication mapping process with high accuracy and efficiency. The multi-stage approach (investigator → temporal → content analysis) ensures robust matching while the AI integration provides nuanced assessment of research relationships. The modular design enables easy customization and scaling for different research contexts.
+This comprehensive system successfully automates the grant-publication mapping process with high accuracy and efficiency. The multi-stage approach (investigator → temporal → content analysis) ensures robust matching while the AI integration provides nuanced assessment of research relationships. 
+
+The addition of an interactive web dashboard makes the results accessible to non-technical users, providing both high-level overview and detailed drill-down capabilities. The modular design enables easy customization and scaling for different research contexts, while the web interface facilitates ongoing analysis and decision-making for the Barbara Dicker Brain Sciences Foundation.
