@@ -223,7 +223,7 @@ def create_embedded_dashboard():
         }}
 
         .clear-btn {{
-            background: #dc3545;
+            background: #ff6b35;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -235,7 +235,7 @@ def create_embedded_dashboard():
         }}
 
         .clear-btn:hover {{
-            background: #c82333;
+            background: #e55a2b;
         }}
 
         .tabs {{
@@ -305,17 +305,24 @@ def create_embedded_dashboard():
             border-radius: 6px;
             border: 1px solid #f0f0f0;
             min-width: 140px;
+            flex: 1;
+        }}
+
+        .stat-item.wide {{
+            min-width: 180px;
+            flex: 1.5;
         }}
 
         .stat-number {{
-            font-size: 2.2em;
+            font-size: 1.9em;
             font-weight: 300;
             color: #ff6b35;
             margin-bottom: 5px;
+            text-align: center;
         }}
 
         .stat-label {{
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #666;
             text-align: center;
             font-weight: 500;
@@ -482,6 +489,150 @@ def create_embedded_dashboard():
             font-weight: 500;
         }}
 
+        .trends-content {{
+            padding: 20px;
+        }}
+
+        .trends-section {{
+            margin-bottom: 40px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            overflow: hidden;
+        }}
+
+        .trends-section h3 {{
+            background: #fafafa;
+            padding: 15px 20px;
+            margin: 0;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }}
+
+        .trends-section > div {{
+            padding: 20px;
+        }}
+
+        .topic-card {{
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }}
+
+        .topic-card:hover {{
+            border-color: #ff6b35;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255,107,53,0.1);
+        }}
+
+        .topic-name {{
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            line-height: 1.3;
+            word-wrap: break-word;
+        }}
+
+        .topic-stats {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }}
+
+        .topic-count {{
+            background: #ff6b35;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }}
+
+        .topic-years {{
+            color: #666;
+            font-size: 0.9em;
+        }}
+
+        .topic-trend {{
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85em;
+        }}
+
+        .trend-up {{
+            color: #28a745;
+        }}
+
+        .trend-down {{
+            color: #dc3545;
+        }}
+
+        .trend-stable {{
+            color: #6c757d;
+        }}
+
+        .yearly-chart {{
+            display: flex;
+            align-items: end;
+            gap: 3px;
+            height: 80px;
+            margin: 10px 0;
+        }}
+
+        .year-bar {{
+            background: linear-gradient(to top, #ff6b35, #f7931e);
+            border-radius: 2px 2px 0 0;
+            min-width: 8px;
+            flex: 1;
+            position: relative;
+            transition: all 0.2s;
+        }}
+
+        .year-bar:hover {{
+            background: linear-gradient(to top, #e55a2b, #e8841a);
+            transform: translateY(-2px);
+        }}
+
+        .year-label {{
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7em;
+            color: #666;
+            writing-mode: horizontal-tb;
+        }}
+
+        .year-value {{
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7em;
+            color: #333;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }}
+
+        .year-bar:hover .year-value {{
+            opacity: 1;
+        }}
+
+        .chart-container {{
+            position: relative;
+            margin: 20px 0;
+        }}
+
         @media (max-width: 768px) {{
             .container {{
                 padding: 10px 20px;
@@ -567,6 +718,7 @@ def create_embedded_dashboard():
         <div class="tabs">
             <button class="tab active" onclick="showTab('all')">All Publications</button>
             <button class="tab" onclick="showTab('bdbsf')">Barbara Dicker Brain Sciences Foundation</button>
+            <button class="tab" onclick="showTab('trends')">Trends & Analytics</button>
         </div>
 
         <div id="allTab" class="tab-content active">
@@ -621,6 +773,39 @@ def create_embedded_dashboard():
             </div>
         </div>
 
+        <div id="trendsTab" class="tab-content">
+            <div class="stats" id="trendsStats">
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalTopics">-</div>
+                        <div class="stat-label">Research Topics</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="avgPubsPerYear">-</div>
+                        <div class="stat-label">Avg Pubs/Year</div>
+                    </div>
+                    <div class="stat-item wide">
+                        <div class="stat-number" id="topTopic">-</div>
+                        <div class="stat-label">Top Topic</div>
+                    </div>
+                </div>
+            </div>
+            <div class="trends-content">
+                <div class="trends-section">
+                    <h3>Research Topics Over Time</h3>
+                    <div class="topic-trends" id="topicTrends">
+                        <div class="loading">Analyzing topic trends...</div>
+                    </div>
+                </div>
+                <div class="trends-section">
+                    <h3>Yearly Growth Trends</h3>
+                    <div class="yearly-trends" id="yearlyTrends">
+                        <div class="loading">Computing yearly trends...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="footer">
             <div class="credits">
                 <p>Powered by <span>ResearchGraph</span> • Publications Dashboard • AI-Powered Grant Mapping</p>
@@ -637,6 +822,7 @@ def create_embedded_dashboard():
         
         let allPublications = [];
         let bdbsfPublications = [];
+        let topicAnalysis = {{}};
         let currentTab = 'all';
 
         // Initialize data
@@ -649,6 +835,7 @@ def create_embedded_dashboard():
             );
 
             populateYearFilter();
+            analyzeTopics();
             updateStats();
             displayPublications();
         }}
@@ -703,6 +890,109 @@ def create_embedded_dashboard():
             }}
         }}
 
+        // Analyze topics from publication titles
+        function analyzeTopics() {{
+            const topics = {{}};
+            const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should']);
+            
+            // Extract key terms from BDBSF publications
+            bdbsfPublications.forEach(pub => {{
+                if (!pub.title) return;
+                
+                const year = pub.publication_year || 'Unknown';
+                const words = pub.title.toLowerCase()
+                    .replace(/[^a-z0-9\\s-]/g, '')
+                    .split(/\\s+/)
+                    .filter(word => word.length > 3 && !stopWords.has(word));
+                
+                // First check for compound terms (multi-word medical conditions)
+                const titleLower = pub.title.toLowerCase();
+                const compoundTerms = [];
+                
+                // Check for compound medical terms first
+                if (titleLower.includes('anorexia nervosa')) compoundTerms.push('Eating Disorders');
+                if (titleLower.includes('alzheimer') || titleLower.includes('dementia')) compoundTerms.push('Neurodegenerative Diseases');
+                if (titleLower.includes('parkinson')) compoundTerms.push('Neurodegenerative Diseases');
+                if (titleLower.includes('covid-19') || titleLower.includes('covid')) compoundTerms.push('COVID-19 Research');
+                if (titleLower.includes('clinical trial')) compoundTerms.push('Clinical Trials');
+                if (titleLower.includes('aged care')) compoundTerms.push('Aged Care Research');
+                if (titleLower.includes('mental health')) compoundTerms.push('Mental Health');
+                
+                // Extract single-word meaningful terms
+                const meaningfulTerms = [];
+                const medicalTerms = ['cannabis', 'cbd', 'thc', 'pain', 'sleep', 'anxiety', 'depression', 'cognitive', 'neurocognitive', 'mental', 'health', 'brain', 'treatment', 'therapy', 'clinical', 'trial', 'study', 'effects', 'patients', 'aged', 'care', 'driving', 'alcohol', 'drug', 'medication', 'chronic', 'acute', 'medical', 'pharmacology'];
+                
+                words.forEach(word => {{
+                    if (medicalTerms.includes(word) || word.length > 6) {{
+                        meaningfulTerms.push(word);
+                    }}
+                }});
+                
+                // Combine compound terms and single terms
+                const allTerms = [...compoundTerms, ...meaningfulTerms];
+                
+                // Group similar terms
+                allTerms.forEach(term => {{
+                    let topicKey = term;
+                    
+                    // Skip if already a compound term (these are already categorized)
+                    if (compoundTerms.includes(term)) {{
+                        topicKey = term;
+                    }}
+                    // Normalize single terms
+                    else if (term.includes('cannab') || term.includes('cbd') || term.includes('thc')) topicKey = 'Cannabis Research';
+                    else if (term.includes('sleep') || term.includes('insomnia')) topicKey = 'Sleep Studies';
+                    else if (term.includes('pain') || term.includes('analges')) topicKey = 'Pain Management';
+                    else if (term.includes('cognit') || term.includes('neurocog')) topicKey = 'Cognitive Research';
+                    else if (term.includes('mental') || term.includes('anxiety') || term.includes('depression')) topicKey = 'Mental Health';
+                    else if (term.includes('anorexia') || term.includes('nervosa')) topicKey = 'Eating Disorders';
+                    else if (term.includes('driving') || term.includes('impair')) topicKey = 'Driving & Impairment';
+                    else if (term.includes('clinical') || term.includes('trial')) topicKey = 'Clinical Trials';
+                    
+                    if (!topics[topicKey]) {{
+                        topics[topicKey] = {{
+                            count: 0,
+                            years: {{}},
+                            publications: []
+                        }};
+                    }}
+                    
+                    if (!topics[topicKey].years[year]) {{
+                        topics[topicKey].years[year] = 0;
+                    }}
+                    
+                    topics[topicKey].count++;
+                    topics[topicKey].years[year]++;
+                    topics[topicKey].publications.push(pub);
+                }});
+            }});
+            
+            // Calculate trends for each topic
+            Object.keys(topics).forEach(topic => {{
+                const years = Object.keys(topics[topic].years).map(Number).filter(y => !isNaN(y)).sort();
+                if (years.length > 1) {{
+                    const firstHalf = years.slice(0, Math.ceil(years.length / 2));
+                    const secondHalf = years.slice(-Math.ceil(years.length / 2));
+                    
+                    const firstHalfAvg = firstHalf.reduce((sum, year) => sum + (topics[topic].years[year] || 0), 0) / firstHalf.length;
+                    const secondHalfAvg = secondHalf.reduce((sum, year) => sum + (topics[topic].years[year] || 0), 0) / secondHalf.length;
+                    
+                    const change = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
+                    
+                    topics[topic].trend = change > 15 ? 'increasing' : (change < -15 ? 'decreasing' : 'stable');
+                    topics[topic].trendValue = change;
+                }} else {{
+                    topics[topic].trend = 'stable';
+                    topics[topic].trendValue = 0;
+                }}
+                
+                topics[topic].yearRange = years.length > 0 ? `${{Math.min(...years)}}-${{Math.max(...years)}}` : 'N/A';
+            }});
+            
+            topicAnalysis = topics;
+            displayTrends();
+        }}
+
         // Show specific tab
         function showTab(tabName) {{
             currentTab = tabName;
@@ -714,12 +1004,18 @@ def create_embedded_dashboard():
             if (tabName === 'all') {{
                 document.querySelectorAll('.tab')[0].classList.add('active');
                 document.getElementById('allTab').classList.add('active');
-            }} else {{
+            }} else if (tabName === 'bdbsf') {{
                 document.querySelectorAll('.tab')[1].classList.add('active');
                 document.getElementById('bdbsfTab').classList.add('active');
+            }} else if (tabName === 'trends') {{
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('trendsTab').classList.add('active');
+                updateTrendsStats();
             }}
             
-            displayPublications();
+            if (tabName !== 'trends') {{
+                displayPublications();
+            }}
         }}
 
         // Display publications based on current tab and filters
@@ -823,6 +1119,82 @@ def create_embedded_dashboard():
             document.getElementById('yearFilter').value = '';
             document.getElementById('confidenceFilter').value = '';
             displayPublications();
+        }}
+
+        // Update trends statistics
+        function updateTrendsStats() {{
+            const topics = Object.keys(topicAnalysis);
+            const totalPubs = bdbsfPublications.length;
+            const years = [...new Set(bdbsfPublications.map(pub => pub.publication_year).filter(y => y))].sort();
+            const avgPubsPerYear = years.length > 0 ? Math.round(totalPubs / years.length) : 0;
+            
+            // Find top topic
+            let topTopic = 'N/A';
+            let maxCount = 0;
+            Object.keys(topicAnalysis).forEach(topic => {{
+                if (topicAnalysis[topic].count > maxCount) {{
+                    maxCount = topicAnalysis[topic].count;
+                    topTopic = topic.length > 20 ? topic.substring(0, 20) + '...' : topic;
+                }}
+            }});
+            
+            document.getElementById('totalTopics').textContent = topics.length;
+            document.getElementById('avgPubsPerYear').textContent = avgPubsPerYear;
+            document.getElementById('topTopic').textContent = topTopic;
+        }}
+
+        // Display trends analysis
+        function displayTrends() {{
+            // Display topic trends
+            const topicTrendsHtml = Object.keys(topicAnalysis)
+                .sort((a, b) => topicAnalysis[b].count - topicAnalysis[a].count)
+                .slice(0, 10) // Show top 10 topics
+                .map(topic => {{
+                    const data = topicAnalysis[topic];
+                    const trendIcon = data.trend === 'increasing' ? '↗' : (data.trend === 'decreasing' ? '↘' : '→');
+                    const trendClass = data.trend === 'increasing' ? 'trend-up' : (data.trend === 'decreasing' ? 'trend-down' : 'trend-stable');
+                    
+                    return `
+                        <div class="topic-card">
+                            <div class="topic-name">${{topic}}</div>
+                            <div class="topic-stats">
+                                <div class="topic-count">${{data.count}} publications</div>
+                                <div class="topic-years">${{data.yearRange}}</div>
+                                <div class="topic-trend ${{trendClass}}">
+                                    ${{trendIcon}} ${{data.trend}}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }}).join('');
+            
+            document.getElementById('topicTrends').innerHTML = topicTrendsHtml;
+
+            // Display yearly trends
+            const years = [...new Set(bdbsfPublications.map(pub => pub.publication_year).filter(y => y))].sort();
+            const yearCounts = {{}};
+            years.forEach(year => {{
+                yearCounts[year] = bdbsfPublications.filter(pub => pub.publication_year === year).length;
+            }});
+            
+            const maxCount = Math.max(...Object.values(yearCounts));
+            const yearlyTrendsHtml = `
+                <div class="chart-container">
+                    <div class="yearly-chart">
+                        ${{years.map(year => `
+                            <div class="year-bar" style="height: ${{(yearCounts[year] / maxCount) * 60 + 10}}px;">
+                                <div class="year-label">${{year}}</div>
+                                <div class="year-value">${{yearCounts[year]}}</div>
+                            </div>
+                        `).join('')}}
+                    </div>
+                    <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9em;">
+                        Publications per year (hover for exact counts)
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('yearlyTrends').innerHTML = yearlyTrendsHtml;
         }}
 
         // Add event listeners for real-time filtering
