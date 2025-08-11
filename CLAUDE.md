@@ -48,24 +48,11 @@ Enhanced publication dataset with 4 additional columns:
 
 ### Core Files
 
-1. **`grant_publication_mapper.py`** - Main production system
+1. **`f0329.py`** - Main production system
    - Handles full dataset processing
-   - Integrates with OpenAI API
-   - Includes comprehensive error handling and rate limiting
-
-2. **`test_run_mapper.py`** - Custom API version
    - Uses ResearchGraph API endpoint
-   - Processes limited sample for testing
+   - Includes comprehensive error handling and rate limiting
    - Demonstrates end-to-end functionality
-
-3. **`demo_results.py`** - Simulation version
-   - Runs without API calls using heuristic analysis
-   - Shows pipeline steps in detail
-   - Useful for testing and demonstration
-
-4. **`test_mapper.py`** - Unit testing framework
-   - Tests individual components (name matching, data loading, filtering)
-   - Validates algorithm logic without API dependencies
 
 ### Key Technical Decisions
 
@@ -129,22 +116,7 @@ pip install -r requirements.txt
 
 1. **Full Production Run**:
 ```bash
-python grant_publication_mapper.py
-```
-
-2. **Test with Sample Data**:
-```bash
-python test_run_mapper.py
-```
-
-3. **Demo without API**:
-```bash
-python demo_results.py
-```
-
-4. **Unit Testing**:
-```bash
-python test_mapper.py
+python f0329.py
 ```
 
 ## Scalability Considerations
