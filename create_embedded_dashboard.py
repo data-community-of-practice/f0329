@@ -30,6 +30,7 @@ def create_embedded_dashboard():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Publications Dashboard - BDBSF</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * {{
             margin: 0;
@@ -38,42 +39,153 @@ def create_embedded_dashboard():
         }}
 
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
-            background-color: #f8f9fa;
+            background-color: #ffffff;
+            background-image: url('ResearchGraph dots.png');
+            background-repeat: repeat;
+            background-size: 50px auto;
+            background-attachment: fixed;
+            background-position: center;
+            position: relative;
+        }}
+
+        body::before {{
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: -1;
+            pointer-events: none;
         }}
 
         .container {{
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 20px 60px;
         }}
 
         .header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 50%, #fff 100%);
+            color: #333;
+            padding: 50px 30px;
             margin-bottom: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-height: 120px;
+            border-bottom: 1px solid #f0f0f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }}
+
+        .header::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #ff6b35 0%, #f7931e 25%, #ffab00 50%, #f7931e 75%, #ff6b35 100%);
+            background-size: 200% 100%;
+            animation: gradientShift 8s ease-in-out infinite;
+        }}
+
+        .header::after {{
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, rgba(255,107,53,0.02) 40%, transparent 70%);
+            border-radius: 50%;
+        }}
+
+        .header .decorative-left {{
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, rgba(255,107,53,0.1) 0%, rgba(247,147,30,0.05) 100%);
+            border-radius: 50%;
+            opacity: 0.6;
+        }}
+
+        .header .decorative-right {{
+            position: absolute;
+            bottom: 15px;
+            right: 80px;
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(45deg, rgba(255,171,0,0.08) 0%, rgba(255,107,53,0.04) 100%);
+            border-radius: 50%;
+            opacity: 0.7;
+        }}
+
+        .header .content {{
+            flex: 1;
             text-align: center;
+            position: relative;
+            z-index: 2;
         }}
 
         .header h1 {{
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 3.0em;
+            margin-bottom: 12px;
+            font-weight: 300;
+            color: #2c3e50;
+            letter-spacing: -1.2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }}
+
+        .header h1::after {{
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b35 0%, #f7931e 50%, #ffab00 100%);
+            border-radius: 2px;
+        }}
+
+        .header h1 span {{
+            color: #ff6b35;
+            font-weight: 500;
+            position: relative;
         }}
 
         .header p {{
             font-size: 1.2em;
-            opacity: 0.9;
+            color: #666;
+            font-weight: 400;
+            margin: 0;
+            opacity: 0.85;
+            margin-top: 15px;
+        }}
+
+        @keyframes gradientShift {{
+            0%, 100% {{
+                background-position: 0% 50%;
+            }}
+            50% {{
+                background-position: 100% 50%;
+            }}
         }}
 
         .search-controls {{
             background: white;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
             margin-bottom: 20px;
         }}
 
@@ -107,7 +219,7 @@ def create_embedded_dashboard():
 
         .search-group input:focus, .search-group select:focus {{
             outline: none;
-            border-color: #667eea;
+            border-color: #ff6b35;
         }}
 
         .clear-btn {{
@@ -129,38 +241,42 @@ def create_embedded_dashboard():
         .tabs {{
             display: flex;
             background: white;
-            border-radius: 10px 10px 0 0;
+            border-radius: 8px 8px 0 0;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #f0f0f0;
+            border-bottom: none;
         }}
 
         .tab {{
             flex: 1;
             padding: 15px 20px;
-            background: #f8f9fa;
+            background: #fafafa;
             border: none;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 500;
             transition: all 0.3s;
-            border-bottom: 3px solid transparent;
+            border-bottom: 2px solid transparent;
+            color: #666;
         }}
 
         .tab:hover {{
-            background: #e9ecef;
+            background: #f5f5f5;
+            color: #333;
         }}
 
         .tab.active {{
             background: white;
-            border-bottom-color: #667eea;
-            color: #667eea;
+            border-bottom-color: #ff6b35;
+            color: #ff6b35;
+            font-weight: 600;
         }}
 
         .tab-content {{
             display: none;
             background: white;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #f0f0f0;
         }}
 
         .tab-content.active {{
@@ -168,9 +284,9 @@ def create_embedded_dashboard():
         }}
 
         .stats {{
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-bottom: 1px solid #dee2e6;
+            padding: 30px 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
         }}
 
         .stats-row {{
@@ -184,23 +300,25 @@ def create_embedded_dashboard():
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px;
+            padding: 20px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            min-width: 120px;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+            min-width: 140px;
         }}
 
         .stat-number {{
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
+            font-size: 2.2em;
+            font-weight: 300;
+            color: #ff6b35;
+            margin-bottom: 5px;
         }}
 
         .stat-label {{
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #666;
             text-align: center;
+            font-weight: 500;
         }}
 
         .publications-list {{
@@ -210,17 +328,17 @@ def create_embedded_dashboard():
         }}
 
         .publication-card {{
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
+            background: white;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 12px;
             transition: transform 0.2s, box-shadow 0.2s;
         }}
 
         .publication-card:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }}
 
         .pub-title {{
@@ -252,7 +370,7 @@ def create_embedded_dashboard():
         }}
 
         .pub-year {{
-            background: #667eea;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
             color: white;
             padding: 3px 8px;
             border-radius: 12px;
@@ -299,7 +417,7 @@ def create_embedded_dashboard():
 
         .grant-info {{
             background: white;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #ff6b35;
             padding: 12px;
             margin-top: 12px;
             border-radius: 0 5px 5px 0;
@@ -328,12 +446,56 @@ def create_embedded_dashboard():
             text-align: center;
             padding: 50px;
             font-size: 1.1em;
-            color: #667eea;
+            color: #ff6b35;
+        }}
+
+        .footer {{
+            text-align: right;
+            padding: 30px 20px 20px 20px;
+            background: white;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 30px;
+            position: relative;
+        }}
+
+        .footer .logo {{
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            z-index: 10;
+        }}
+
+        .footer .logo img {{
+            max-height: 30px;
+            height: auto;
+            width: auto;
+        }}
+
+        .footer .credits {{
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 40px;
+        }}
+
+        .footer .credits span {{
+            color: #ff6b35;
+            font-weight: 500;
         }}
 
         @media (max-width: 768px) {{
             .container {{
-                padding: 10px;
+                padding: 10px 20px;
+            }}
+            
+            .header {{
+                flex-direction: column;
+                text-align: center;
+                min-height: auto;
+                padding: 20px;
+            }}
+
+            .header .content {{
+                margin-left: 0;
             }}
             
             .header h1 {{
@@ -367,8 +529,12 @@ def create_embedded_dashboard():
 <body>
     <div class="container">
         <div class="header">
-            <h1>Publications Dashboard</h1>
-            <p>Comprehensive view of research publications and grant mappings</p>
+            <div class="decorative-left"></div>
+            <div class="decorative-right"></div>
+            <div class="content">
+                <h1>Publications <span>Dashboard</span></h1>
+                <p>Comprehensive view of research publications and grant mappings</p>
+            </div>
         </div>
 
         <div class="search-controls">
@@ -452,6 +618,15 @@ def create_embedded_dashboard():
             </div>
             <div class="publications-list" id="bdbsfPublications">
                 <div class="loading">Loading BDBSF publications...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="credits">
+                <p>Powered by <span>ResearchGraph</span> • Publications Dashboard • AI-Powered Grant Mapping</p>
+            </div>
+            <div class="logo">
+                <img src="ResearchGraph.png" alt="ResearchGraph" onerror="this.style.display='none'">
             </div>
         </div>
     </div>
