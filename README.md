@@ -52,7 +52,7 @@ model = gpt-4o-mini
 
 ### 3. Run Processing
 ```bash
-python batch_processor_optimized.py
+python f0329.py
 ```
 
 The system will automatically:
@@ -155,7 +155,7 @@ title,authors_list,Associated Grant,Confidence level,Reasoning
 ## 🔧 Configuration Options
 
 ```python
-# In batch_processor_optimized.py
+# In f0329.py
 self.batch_size = 20              # Publications per batch
 self.max_candidates_per_pub = 2   # Max LLM calls per publication
 self.api_delay = 2.0              # Seconds between API calls  
