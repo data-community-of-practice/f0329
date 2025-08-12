@@ -1,13 +1,13 @@
-# Grant-Publication Mapping System
+# Grant-Publication Mapping System - Optimized Version
 
-An intelligent system that maps research publications to grants using AI-powered analysis with robust rate limit handling.
+An intelligent system that maps research publications to grants using optimized AI-powered analysis with pre-filtering to reduce API calls by 98%.
 
 ## 🎯 Purpose
 
 Maps publications from the Barbara Dicker Brain Science Foundation investigators to their corresponding grants by:
 - Matching investigators between publications and grants
 - Validating temporal relationships (publication within grant period + 2 years)
-- Using GPT-4o-mini to assess topical alignment and assign confidence levels
+- Using OpenAI GPT-4o-mini to assess topical alignment and assign confidence levels
 
 ## 🚀 Key Features
 
@@ -28,7 +28,7 @@ Maps publications from the Barbara Dicker Brain Science Foundation investigators
 
 ## 📁 Files
 
-- **`batch_processor_optimized.py`** - Main production system
+- **`grant_publication_mapper_optimized.py`** - Main production system with OpenAI API
 - **`config.ini`** - API configuration 
 - **`requirements.txt`** - Python dependencies
 - **`CLAUDE.md`** - Technical documentation
@@ -42,17 +42,15 @@ pip install -r requirements.txt
 ```
 
 ### 2. Configure API
-Update `config.ini` with your ResearchGraph API credentials:
+Update `config.ini` with your OpenAI API credentials:
 ```ini
 [API]
-base_url = https://researchgraph.cloud/api/gpt
-authorization = enter your authorization token here
-model = gpt-4o-mini
+api_key = your_openai_api_key_here
 ```
 
 ### 3. Run Processing
 ```bash
-python batch_processor_optimized.py
+python grant_publication_mapper_optimized.py
 ```
 
 The system will automatically:
@@ -68,7 +66,7 @@ The system will automatically:
 - `Merged Publications Final.csv` - Publication data with authors and metadata
 
 ### **Output**
-- `batch_results.csv` - All publications with 4 additional columns:
+- `all_mapped_publications.csv` - All publications with 4 additional columns:
   - `Associated Grant` - Matched grant title
   - `DOI of grant` - Grant identifier  
   - `Confidence level` - Very High/High/Medium/Low/Very Low
@@ -155,11 +153,10 @@ title,authors_list,Associated Grant,Confidence level,Reasoning
 ## 🔧 Configuration Options
 
 ```python
-# In batch_processor_optimized.py
-self.batch_size = 20              # Publications per batch
-self.max_candidates_per_pub = 2   # Max LLM calls per publication
-self.api_delay = 2.0              # Seconds between API calls  
-self.retry_delay = 60.0           # Wait time after 429 error
+# In grant_publication_mapper_optimized.py
+# Analyzes up to top 3 candidates per publication
+# 0.2 second delay between API calls
+# Pre-filtering reduces API calls by 98%
 ```
 
 ## 📋 Monitoring Progress
@@ -169,7 +166,7 @@ self.retry_delay = 60.0           # Wait time after 429 error
 ls processing_progress.json
 
 # Count completed publications  
-wc -l batch_results.csv
+wc -l all_mapped_publications.csv
 
 # View progress details
 cat processing_progress.json
@@ -185,8 +182,8 @@ rm processing_progress.json
 
 ### **Check API Connectivity**
 ```bash
-# Test API endpoint
-curl -X POST https://researchgraph.cloud/api/gpt -H "authorization: Basic YOUR_KEY"
+# Test OpenAI API
+curl -X POST https://api.openai.com/v1/chat/completions -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 ### **Verify Input Files**
@@ -228,6 +225,6 @@ See `CLAUDE.md` for detailed technical documentation including:
 1. **Run overnight** - Processing 1,356 publications takes 2-4 hours total
 2. **Monitor progress** - Check `processing_progress.json` periodically  
 3. **Resume anytime** - Script automatically continues from where it left off
-4. **Backup results** - `batch_results.csv` is updated incrementally
+4. **Backup results** - `all_mapped_publications.csv` is saved after processing
 
-The system is designed to handle the ResearchGraph API limitations efficiently while maintaining high-quality publication-grant mappings.
+The system uses OpenAI's GPT-4o-mini model with intelligent pre-filtering to efficiently map publications to grants.
